@@ -26,6 +26,7 @@ jobs:
           node-version: 22.14.0
           cache: pnpm
 
+      # Upgrade npm for trusted publishing
       - name: Upgrade npm for trusted publishing
         run: npm install -g npm@^11.5.1
 
