@@ -36,22 +36,7 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Verify npm auth
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          if [ -z "$NPM_TOKEN" ]; then
-            echo "NPM_TOKEN is empty in this job"
-            exit 1
-          fi
-          : "${NPM_CONFIG_USERCONFIG:=$HOME/.npmrc}"
-          printf "//registry.npmjs.org/:_authToken=%s\n" "$NPM_TOKEN" > "$NPM_CONFIG_USERCONFIG"
-          npm whoami --registry=https://registry.npmjs.org/ --userconfig "$NPM_CONFIG_USERCONFIG"
-
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: pnpm release

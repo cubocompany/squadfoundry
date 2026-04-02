@@ -103,6 +103,10 @@
     "type": "git",
     "url": "https://github.com/cubocompany/squadfoundry"
   },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "homepage": "https://github.com/cubocompany/squadfoundry",
   "bugs": {
     "url": "https://github.com/cubocompany/squadfoundry/issues"
