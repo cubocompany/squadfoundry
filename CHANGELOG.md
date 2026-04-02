@@ -1,3 +1,10 @@
+## [1.0.5](https://github.com/cubocompany/squadfoundry/compare/v1.0.4...v1.0.5) (2026-04-02)
+
+
+### Bug Fixes
+
+* **cli:** honor explicit host adapter and improve non-tty UX ([006ddd7](https://github.com/cubocompany/squadfoundry/commit/006ddd79bb1339764e9cae5d8299dbe5acd19596))
+
 ## [1.0.4](https://github.com/cubocompany/squadfoundry/compare/v1.0.3...v1.0.4) (2026-04-02)
 
 
