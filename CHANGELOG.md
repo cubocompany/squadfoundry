@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/cubocompany/squadfoundry/compare/v1.1.1...v1.1.2) (2026-04-02)
+
+
+### Bug Fixes
+
+* **host:** retry claude bridge with non-interactive fallback ([453a0e7](https://github.com/cubocompany/squadfoundry/commit/453a0e7ac377f7cdcd6ceb31e4beab793f1fd29f))
+
 ## [1.1.1](https://github.com/cubocompany/squadfoundry/compare/v1.1.0...v1.1.1) (2026-04-02)
 
 
