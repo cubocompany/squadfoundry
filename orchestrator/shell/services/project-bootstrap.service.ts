@@ -95,12 +95,21 @@ async function writeJsonFile(filePath: string, content: unknown): Promise<void> 
   await writeFile(filePath, `${JSON.stringify(content, null, 2)}\n`, 'utf-8')
 }
 
-async function scaffoldIdeCommands(workspaceDir: string): Promise<void> {
-  const dir = join(workspaceDir, 'commands')
-  await mkdir(dir, { recursive: true })
+async function scaffoldIdeCommands(commandsDir: string): Promise<void> {
+  await mkdir(commandsDir, { recursive: true })
   for (const [fileName, content] of Object.entries(IDE_COMMANDS)) {
-    await writeFile(join(dir, fileName), `${content}\n`, 'utf-8')
+    await writeFile(join(commandsDir, fileName), `${content}\n`, 'utf-8')
   }
+}
+
+function getNativeCommandsDirForIde(workspaceDir: string, preferredIde: PreferredIde): string | null {
+  if (preferredIde === 'claude-code') {
+    return join(workspaceDir, '.claude', 'commands')
+  }
+  if (preferredIde === 'opencode') {
+    return join(workspaceDir, '.opencode', 'commands')
+  }
+  return null
 }
 
 async function fileExists(filePath: string): Promise<boolean> {
@@ -142,6 +151,10 @@ export async function initProject(workspaceDir: string, options: InitProjectOpti
   ])
 
   if (preferredIde !== 'none') {
-    await scaffoldIdeCommands(join(configRoot, preferredIde))
+    await scaffoldIdeCommands(join(configRoot, preferredIde, 'commands'))
+    const nativeCommandsDir = getNativeCommandsDirForIde(workspaceDir, preferredIde)
+    if (nativeCommandsDir) {
+      await scaffoldIdeCommands(nativeCommandsDir)
+    }
   }
 }
