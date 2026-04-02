@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/cubocompany/squadfoundry/compare/v1.0.1...v1.0.2) (2026-04-02)
+
+
+### Bug Fixes
+
+* **release:** update files to deploy in npm ([e1d2ff7](https://github.com/cubocompany/squadfoundry/commit/e1d2ff76d6a906e94e58672ae7432cd91201dea0))
+
 ## [1.0.1](https://github.com/cubocompany/squadfoundry/compare/v1.0.0...v1.0.1) (2026-04-02)
 
 
