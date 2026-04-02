@@ -228,9 +228,12 @@ Host resolution is CLI-first and explicit:
 
 - Detector scores strong/medium/weak host signals.
 - Resolver uses detected host when valid, then persisted host when still valid.
+- `SQUAD_FOUNDRY_ADAPTER=<host-id>` forces explicit host selection (`claude-code`, `opencode`, `local`, `antigravity`, `anthropic`, `openai`).
 - If unresolved, interactive CLI asks for host selection.
 - Runtime writes host provenance at `artifacts/<squad>/<job>/reports/runtime-metadata.json`.
 - `status` prints `resolvedHost`, `confidence`, `reasons`, `activeModel`, and `fallbackPath`.
+
+`create` and `edit` are guided interview commands and require an interactive terminal.
 
 ---
 

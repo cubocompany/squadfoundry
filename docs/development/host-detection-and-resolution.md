@@ -12,6 +12,8 @@ Resolution happens in three stages:
 
 ## Confidence and Resolution Rules
 
+- `SQUAD_FOUNDRY_ADAPTER=<host-id>` (except `auto`) overrides detector/persisted flow in shell and MCP modes.
+- Alias: `claude` resolves to `claude-code` for compatibility.
 - `high`: use detected host only if adapter initializes and supports command.
 - `medium`: reuse persisted host only if:
   - adapter initializes,

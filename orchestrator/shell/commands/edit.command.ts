@@ -27,6 +27,11 @@ export function registerEdit(program: Command): void {
 
       const hostRuntime = new HostRuntimeService(opts.cwd)
       const resolved = await hostRuntime.resolveForCommand('edit')
+
+      if (!process.stdin.isTTY) {
+        throw new Error("The 'edit' command requires an interactive terminal.")
+      }
+
       const builder = createSquadBuilder({
         contextRootPath: opts.cwd,
         outputDir: opts.out,

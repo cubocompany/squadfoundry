@@ -104,14 +104,19 @@ If no valid host is detected, CLI asks for host selection.
 For explicit adapter selection in non-interactive environments:
 
 ```bash
+SQUAD_FOUNDRY_ADAPTER=claude-code node dist/orchestrator/cli/index.js hosts
 SQUAD_FOUNDRY_ADAPTER=local node dist/orchestrator/cli/index.js run software-development --objective "..."
 ```
 
 Available adapter IDs in current runtime:
+- `claude-code`
+- `opencode`
 - `local`
 - `antigravity`
 - `anthropic`
 - `openai`
+
+Note: `create` and `edit` require an interactive terminal because they run a guided interview flow.
 
 Programmatic switching remains available:
 

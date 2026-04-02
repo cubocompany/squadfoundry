@@ -161,7 +161,47 @@ export class HostRuntimeService {
     }
   }
 
+  private normalizeExplicitHostId(rawValue: string): string {
+    const normalized = rawValue.trim().toLowerCase()
+    if (normalized === 'claude') return 'claude-code'
+    return normalized
+  }
+
   async resolveForCommand(commandId: string): Promise<ResolvedHostRuntime> {
+    const explicitAdapter = process.env['SQUAD_FOUNDRY_ADAPTER']
+    if (explicitAdapter && explicitAdapter.trim() !== '' && explicitAdapter !== 'auto') {
+      const normalizedHostId = this.normalizeExplicitHostId(explicitAdapter)
+      const adapter = this.getHostAdapter(normalizedHostId)
+      if (!adapter) {
+        const supported = getAvailableHostIds().join(', ')
+        throw new Error(
+          `Unsupported adapter '${explicitAdapter}'. Supported adapters: ${supported}.`,
+        )
+      }
+
+      const validation = {
+        timestamp: new Date().toISOString(),
+        matchedSignals: ['env:SQUAD_FOUNDRY_ADAPTER'],
+      }
+      await this.persistPreferredHost({
+        preferredHost: normalizedHostId,
+        validation,
+      })
+
+      await adapter.initialize()
+      const activeModel = (await adapter.getActiveModel()) ?? 'host-default'
+
+      return {
+        hostAdapter: adapter,
+        hostId: normalizedHostId,
+        path: 'detected',
+        confidence: 'high',
+        reasons: [`Explicit host override via SQUAD_FOUNDRY_ADAPTER='${explicitAdapter}'`],
+        activeModel,
+        validation,
+      }
+    }
+
     const detector = new ActiveHostDetector()
     const detection = await detector.detect({
       cwd: this.cwd,

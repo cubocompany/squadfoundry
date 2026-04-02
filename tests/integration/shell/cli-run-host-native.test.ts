@@ -50,4 +50,48 @@ describe('Host-native shell CLI', () => {
       spy.mockRestore()
     }
   })
+
+  it('fails create command with clear message in non-interactive mode', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'sf-shell-test-'))
+    const previous = process.env['SQUAD_FOUNDRY_ADAPTER']
+    process.env['SQUAD_FOUNDRY_ADAPTER'] = 'claude-code'
+
+    try {
+      await expect(
+        createShellProgram().parseAsync(['node', 'squadfoundry', 'create', '--cwd', cwd, '--out', cwd]),
+      ).rejects.toThrow(/requires an interactive terminal/)
+    } finally {
+      if (previous === undefined) {
+        delete process.env['SQUAD_FOUNDRY_ADAPTER']
+      } else {
+        process.env['SQUAD_FOUNDRY_ADAPTER'] = previous
+      }
+    }
+  })
+
+  it('fails edit command with clear message in non-interactive mode', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'sf-shell-test-'))
+    const configDir = join(cwd, 'squads', 'software-development', 'config')
+    await mkdir(configDir, { recursive: true })
+    await writeFile(
+      join(configDir, 'squad.json'),
+      JSON.stringify({ id: 'software-development', name: 'Software Development', agents: [], workflow: { steps: [] } }),
+      'utf-8',
+    )
+
+    const previous = process.env['SQUAD_FOUNDRY_ADAPTER']
+    process.env['SQUAD_FOUNDRY_ADAPTER'] = 'claude-code'
+
+    try {
+      await expect(
+        createShellProgram().parseAsync(['node', 'squadfoundry', 'edit', 'software-development', '--cwd', cwd, '--out', cwd]),
+      ).rejects.toThrow(/requires an interactive terminal/)
+    } finally {
+      if (previous === undefined) {
+        delete process.env['SQUAD_FOUNDRY_ADAPTER']
+      } else {
+        process.env['SQUAD_FOUNDRY_ADAPTER'] = previous
+      }
+    }
+  })
 })
