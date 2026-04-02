@@ -4,6 +4,14 @@
 ### Bug Fixes
 
 * **release:** fix release ([8b8c0c7](https://github.com/cubocompany/squadfoundry/commit/8b8c0c76ab1f36a5e74ae5ac310ba0dba89f957f))
+* **release:** fix release process ([f5277e8](https://github.com/cubocompany/squadfoundry/commit/f5277e8b9dceacc03ca38391281fdfc6576925ca))
+
+## [1.0.4](https://github.com/cubocompany/squadfoundry/compare/v1.0.3...v1.0.4) (2026-04-02)
+
+
+### Bug Fixes
+
+* **release:** fix release ([8b8c0c7](https://github.com/cubocompany/squadfoundry/commit/8b8c0c76ab1f36a5e74ae5ac310ba0dba89f957f))
 
 ## [1.0.3](https://github.com/cubocompany/squadfoundry/compare/v1.0.2...v1.0.3) (2026-04-02)
 
