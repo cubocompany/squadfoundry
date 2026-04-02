@@ -39,8 +39,13 @@ jobs:
       - name: Verify npm auth
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          test -n "$NPM_TOKEN" || (echo "NPM_TOKEN vazio" && exit 1)
+          if [ -z "$NPM_TOKEN" ]; then
+            echo "NPM_TOKEN is empty in this job"
+            exit 1
+          fi
+          : "${NPM_CONFIG_USERCONFIG:=$HOME/.npmrc}"
           printf "//registry.npmjs.org/:_authToken=%s\n" "$NPM_TOKEN" > "$NPM_CONFIG_USERCONFIG"
           npm whoami --registry=https://registry.npmjs.org/ --userconfig "$NPM_CONFIG_USERCONFIG"
 
