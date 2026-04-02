@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/cubocompany/squadfoundry/compare/v1.0.5...v1.1.0) (2026-04-02)
+
+
+### Features
+
+* **cli:** simplify setup with scoped init and centralized config ([92b626b](https://github.com/cubocompany/squadfoundry/commit/92b626b1c637dc66b6b2ec68f63372e17ce2d030))
+
 ## [1.0.5](https://github.com/cubocompany/squadfoundry/compare/v1.0.4...v1.0.5) (2026-04-02)
 
 

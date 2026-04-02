@@ -1,6 +1,6 @@
 {
   "name": "squadfoundry",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "description": "Local extensible multi-agent squad orchestration platform — model-agnostic, host-agnostic, domain-agnostic",
   "type": "module",
   "main": "./dist/orchestrator/index.js",
