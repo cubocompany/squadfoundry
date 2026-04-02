@@ -63,8 +63,14 @@ npm install -g squadfoundry
 # Inicializar config host-native
 squadfoundry init
 
+# Inicializar sem prompts (defaults)
+squadfoundry init --yes
+
 # Criar um novo squad (entrevista guiada via host ativo)
 squadfoundry create
+
+# Criar sem TTY (automação/CI)
+squadfoundry create --answers-file ./answers.json
 
 # Editar um squad existente
 squadfoundry edit software-development
@@ -229,11 +235,13 @@ Host resolution is CLI-first and explicit:
 - Detector scores strong/medium/weak host signals.
 - Resolver uses detected host when valid, then persisted host when still valid.
 - `SQUAD_FOUNDRY_ADAPTER=<host-id>` forces explicit host selection (`claude-code`, `opencode`, `local`, `antigravity`, `anthropic`, `openai`).
+- Init stores shell configuration in one place: `.squadfoundry/` (repository scope) or user config directory (global scope).
 - If unresolved, interactive CLI asks for host selection.
 - Runtime writes host provenance at `artifacts/<squad>/<job>/reports/runtime-metadata.json`.
 - `status` prints `resolvedHost`, `confidence`, `reasons`, `activeModel`, and `fallbackPath`.
 
-`create` and `edit` are guided interview commands and require an interactive terminal.
+`edit` is a guided interview command and requires an interactive terminal.
+`create` also supports non-interactive mode via `--answers-file`.
 
 ---
 

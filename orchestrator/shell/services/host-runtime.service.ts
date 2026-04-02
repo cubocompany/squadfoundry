@@ -1,7 +1,7 @@
-import { access, readFile, writeFile } from 'node:fs/promises'
+import { access, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { createInterface } from 'node:readline/promises'
 import { stdin as input, stdout as output } from 'node:process'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 
 import { AntigravityHostAdapter } from '../../adapters/host/antigravity.adapter.js'
 import { AnthropicHostAdapter } from '../../adapters/host/anthropic.adapter.js'
@@ -16,8 +16,7 @@ import {
   type HostResolutionResult,
   type PersistedHostPreference,
 } from './host-resolution.service.js'
-
-const HOST_PREFS_FILE = 'squadfoundry.hosts.json'
+import { SQUADFOUNDRY_HOSTS_FILE, resolveConfigDir } from './config-paths.service.js'
 
 type StoredHostPreferences = {
   preferredHost: string | null
@@ -79,7 +78,8 @@ export class HostRuntimeService {
   }
 
   private getPreferencesPath(): string {
-    return join(this.cwd, HOST_PREFS_FILE)
+    const { configDir } = resolveConfigDir(this.cwd)
+    return join(configDir, SQUADFOUNDRY_HOSTS_FILE)
   }
 
   private async loadPersistedPreference(): Promise<PersistedHostPreference | null> {
@@ -108,6 +108,7 @@ export class HostRuntimeService {
 
   private async persistPreferredHost(preference: PersistedHostPreference): Promise<void> {
     const path = this.getPreferencesPath()
+    await mkdir(dirname(path), { recursive: true })
     const existing = await this.loadPersistedPreference()
     const knownHosts = new Set<string>([
       ...(existing?.preferredHost ? [existing.preferredHost] : []),

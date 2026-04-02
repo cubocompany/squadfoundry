@@ -84,7 +84,6 @@ export class SquadBuilder {
       const fullPath = join(this.outputDir, file.path)
       mkdirSync(dirname(fullPath), { recursive: true })
       writeFileSync(fullPath, file.content, 'utf-8')
-      console.log(`[SquadBuilder] Written: ${file.path}`)
     }
 
     return result

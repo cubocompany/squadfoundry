@@ -23,7 +23,7 @@ Resolution happens in three stages:
 
 ## Persisted Preference Format
 
-File: `squadfoundry.hosts.json`
+File: `.squadfoundry/hosts.json` (repository scope) or user config dir (`~/.config/squadfoundry/hosts.json` on Linux/macOS, `%APPDATA%/squadfoundry/hosts.json` on Windows) when initialized globally.
 
 Example:
 

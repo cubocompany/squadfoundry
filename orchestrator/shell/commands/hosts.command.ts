@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 import { HostRuntimeService } from '../services/host-runtime.service.js'
+import { SQUADFOUNDRY_HOSTS_FILE, resolveConfigDir } from '../services/config-paths.service.js'
 
 type HostsOptions = {
   cwd: string
@@ -23,9 +24,12 @@ export function registerHosts(program: Command): void {
       console.log(`activeModel: ${resolved.activeModel}`)
       console.log(`fallbackPath: ${resolved.path}`)
 
-      const filePath = join(opts.cwd, 'squadfoundry.hosts.json')
+      const { configDir, scope } = resolveConfigDir(opts.cwd)
+      const filePath = join(configDir, SQUADFOUNDRY_HOSTS_FILE)
       try {
         const raw = readFileSync(filePath, 'utf-8')
+        console.log(`configScope: ${scope}`)
+        console.log(`configPath: ${filePath}`)
         console.log(`preferences: ${raw.trim()}`)
       } catch {
         console.log('preferences: <not found>')

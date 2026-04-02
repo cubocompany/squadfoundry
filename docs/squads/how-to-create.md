@@ -5,10 +5,21 @@ Squads are created via the **Squad Builder** — an interview-driven system that
 ## Method 1: CLI Interview
 
 ```bash
-node dist/cli/index.js build
+npx squadfoundry create
 ```
 
 The CLI will ask you a series of questions and generate the squad files.
+
+For non-interactive environments, provide answers via file:
+
+```bash
+npx squadfoundry create --answers-file ./answers.json
+```
+
+Accepted `answers.json` formats:
+
+- Object map keyed by question id (`q_objective`, `q_domain`, etc.)
+- Array of `{ "questionId": "...", "answer": "..." }`
 
 ## Method 2: Programmatic API
 

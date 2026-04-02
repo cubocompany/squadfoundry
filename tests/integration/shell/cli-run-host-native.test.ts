@@ -1,4 +1,4 @@
-import { mkdtemp, mkdir, writeFile } from 'node:fs/promises'
+import { access, mkdtemp, mkdir, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
@@ -93,5 +93,35 @@ describe('Host-native shell CLI', () => {
         process.env['SQUAD_FOUNDRY_ADAPTER'] = previous
       }
     }
+  })
+
+  it('creates squad in non-interactive mode with answers file', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'sf-shell-test-'))
+    const answersPath = join(cwd, 'answers.json')
+    await writeFile(answersPath, JSON.stringify({
+      q_objective: 'Handle development requests',
+      q_domain: 'Software Development',
+      q_description: 'Receives tasks, builds code, reviews and publishes',
+      q_inputs: 'Jira ticket',
+      q_outputs: 'Pull request opened',
+      q_steps: 'Intake, Development, Review, Test, Publish',
+      q_approvals: 'publish and deploy',
+      q_human_in_loop: 'approval and production deploy',
+      q_squad_name: 'uqbar-ti',
+    }, null, 2), 'utf-8')
+
+    await createShellProgram().parseAsync([
+      'node',
+      'squadfoundry',
+      'create',
+      '--cwd',
+      cwd,
+      '--out',
+      cwd,
+      '--answers-file',
+      answersPath,
+    ])
+
+    await expect(access(join(cwd, 'squads', 'uqbar-ti', 'config', 'squad.json'))).resolves.toBeUndefined()
   })
 })

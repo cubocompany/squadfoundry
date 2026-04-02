@@ -5,16 +5,17 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 import { initProject } from '../../../orchestrator/shell/services/project-bootstrap.service.js'
+import { getGlobalConfigDir } from '../../../orchestrator/shell/services/config-paths.service.js'
 
 describe('project bootstrap service', () => {
-  it('writes squadfoundry.config.json and squadfoundry.hosts.json on init', async () => {
+  it('writes config and hosts inside .squadfoundry on repository init', async () => {
     const workspaceDir = await mkdtemp(join(tmpdir(), 'squadfoundry-bootstrap-'))
 
     try {
-      await initProject(workspaceDir)
+      await initProject(workspaceDir, { preferredIde: 'claude-code' })
 
-      const configPath = join(workspaceDir, 'squadfoundry.config.json')
-      const hostsPath = join(workspaceDir, 'squadfoundry.hosts.json')
+      const configPath = join(workspaceDir, '.squadfoundry', 'config.json')
+      const hostsPath = join(workspaceDir, '.squadfoundry', 'hosts.json')
 
       expect(existsSync(configPath)).toBe(true)
       expect(existsSync(hostsPath)).toBe(true)
@@ -22,17 +23,18 @@ describe('project bootstrap service', () => {
       const configContent = JSON.parse(await readFile(configPath, 'utf-8'))
       const hostsContent = JSON.parse(await readFile(hostsPath, 'utf-8'))
 
-      expect(configContent).toEqual({ version: 1, cliMode: 'shell' })
+      expect(configContent).toEqual({
+        version: 1,
+        cliMode: 'shell',
+        installScope: 'repository',
+        preferredIde: 'claude-code',
+      })
       expect(hostsContent).toEqual({ preferredHost: null, lastValidated: null, hosts: [] })
 
-      const opencodeRunPath = join(workspaceDir, '.opencode', 'commands', 'squad-run.md')
-      const claudeRunPath = join(workspaceDir, '.claude', 'commands', 'squad-run.md')
-      expect(existsSync(opencodeRunPath)).toBe(true)
+      const claudeRunPath = join(workspaceDir, '.squadfoundry', 'claude-code', 'commands', 'squad-run.md')
       expect(existsSync(claudeRunPath)).toBe(true)
 
-      const opencodeRun = await readFile(opencodeRunPath, 'utf-8')
       const claudeRun = await readFile(claudeRunPath, 'utf-8')
-      expect(opencodeRun).toContain('squadfoundry run')
       expect(claudeRun).toContain('squadfoundry run')
     } finally {
       await rm(workspaceDir, { recursive: true, force: true })
@@ -53,7 +55,7 @@ describe('project bootstrap service', () => {
 
   it('overwrites existing config files when force is true', async () => {
     const workspaceDir = await mkdtemp(join(tmpdir(), 'squadfoundry-bootstrap-'))
-    const configPath = join(workspaceDir, 'squadfoundry.config.json')
+    const configPath = join(workspaceDir, '.squadfoundry', 'config.json')
 
     try {
       await initProject(workspaceDir)
@@ -62,9 +64,35 @@ describe('project bootstrap service', () => {
       await initProject(workspaceDir, { force: true })
 
       const configContent = JSON.parse(await readFile(configPath, 'utf-8'))
-      expect(configContent).toEqual({ version: 1, cliMode: 'shell' })
+      expect(configContent).toEqual({
+        version: 1,
+        cliMode: 'shell',
+        installScope: 'repository',
+        preferredIde: 'none',
+      })
     } finally {
       await rm(workspaceDir, { recursive: true, force: true })
+    }
+  })
+
+  it('writes global config when scope is global', async () => {
+    const workspaceDir = await mkdtemp(join(tmpdir(), 'squadfoundry-bootstrap-'))
+    const globalDir = getGlobalConfigDir()
+    const configPath = join(globalDir, 'config.json')
+    const hostsPath = join(globalDir, 'hosts.json')
+
+    try {
+      await rm(globalDir, { recursive: true, force: true })
+      await initProject(workspaceDir, { installScope: 'global', preferredIde: 'none' })
+
+      expect(existsSync(configPath)).toBe(true)
+      expect(existsSync(hostsPath)).toBe(true)
+
+      const configContent = JSON.parse(await readFile(configPath, 'utf-8'))
+      expect(configContent.installScope).toBe('global')
+    } finally {
+      await rm(workspaceDir, { recursive: true, force: true })
+      await rm(globalDir, { recursive: true, force: true })
     }
   })
 })
