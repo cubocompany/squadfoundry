@@ -1,0 +1,474 @@
+{
+  "id": "instagram-content",
+  "name": "Instagram Content Squad",
+  "domain": "social-media",
+  "objective": "Create, review, approve, and publish high-quality Instagram content from concept to post",
+  "description": "A full-cycle Instagram content squad that handles strategy, research, copywriting, creative review, brand compliance, human approval, and publishing — with analytics follow-up.",
+  "context": "This squad operates for brand accounts on Instagram. All publishing actions require explicit human approval. Brand guidelines must be respected at all times.",
+  "agents": [
+    {
+      "id": "strategy-agent",
+      "name": "Strategy Agent",
+      "role": "Content Strategist",
+      "domain": "social-media",
+      "objective": "Define the content strategy and brief for each post or campaign",
+      "instructions": "You are the Strategy Agent. Given a campaign brief or topic request, produce a content strategy: target audience, tone of voice, content pillars, post objective, and success metrics. Output a concise strategy brief.",
+      "inputs": [
+        { "name": "campaign_brief", "description": "Campaign or post request", "required": true }
+      ],
+      "outputs": [
+        { "name": "strategy_brief", "description": "Content strategy brief", "required": true, "format": "markdown" }
+      ],
+      "allowedTools": ["context", "filesystem"],
+      "constraints": [
+        "Do not write captions",
+        "Stay aligned with brand guidelines",
+        "Always define a clear call-to-action"
+      ],
+      "successCriteria": ["Strategy brief produced", "Audience and objective defined"],
+      "failureCriteria": ["Cannot understand campaign goal"],
+      "allowedStates": ["READY_FOR_EXECUTION", "RUNNING_STEP"],
+      "blockingConditions": [],
+      "handoffRules": [
+        {
+          "condition": "strategy_complete",
+          "targetAgentId": "research-agent",
+          "description": "Pass strategy to Research Agent",
+          "requiresApproval": false
+        }
+      ],
+      "responseFormat": "markdown"
+    },
+    {
+      "id": "research-agent",
+      "name": "Research Agent",
+      "role": "Content Researcher",
+      "domain": "social-media",
+      "objective": "Research trending topics, hashtags, and competitor content relevant to the strategy",
+      "instructions": "You are the Research Agent. Given a strategy brief, research: trending hashtags, relevant topics, competitor content, and audience insights. Output a research summary with top hashtag suggestions and content opportunities.",
+      "inputs": [
+        { "name": "strategy_brief", "description": "Content strategy brief", "required": true }
+      ],
+      "outputs": [
+        { "name": "research_summary", "description": "Hashtags, trends, and content insights", "required": true, "format": "markdown" }
+      ],
+      "allowedTools": ["web-search", "context"],
+      "constraints": [
+        "Do not fabricate statistics",
+        "Always cite sources when possible",
+        "Respect platform hashtag limits (max 30)"
+      ],
+      "successCriteria": ["Research completed", "Hashtag list produced"],
+      "failureCriteria": ["Cannot access research tools"],
+      "allowedStates": ["READY_FOR_EXECUTION", "RUNNING_STEP"],
+      "blockingConditions": [],
+      "handoffRules": [
+        {
+          "condition": "research_complete",
+          "targetAgentId": "copy-agent",
+          "description": "Pass research to Copy Agent",
+          "requiresApproval": false
+        }
+      ],
+      "responseFormat": "markdown"
+    },
+    {
+      "id": "copy-agent",
+      "name": "Copy Agent",
+      "role": "Copywriter",
+      "domain": "social-media",
+      "objective": "Write the Instagram caption, hashtags, and call-to-action",
+      "instructions": "You are the Copy Agent. Given a strategy brief and research summary, write an engaging Instagram caption. Follow the brand voice guidelines. Include: hook, body, CTA, and hashtags. Keep within Instagram limits (2200 chars, max 30 hashtags). Output the full caption.",
+      "inputs": [
+        { "name": "strategy_brief", "description": "Content strategy", "required": true },
+        { "name": "research_summary", "description": "Research and hashtags", "required": true }
+      ],
+      "outputs": [
+        { "name": "caption_draft", "description": "Instagram caption draft", "required": true, "format": "markdown" }
+      ],
+      "allowedTools": ["context", "filesystem"],
+      "constraints": [
+        "Max 2200 characters",
+        "Max 30 hashtags",
+        "Must include a clear CTA",
+        "Follow brand voice guidelines",
+        "No profanity or off-brand language"
+      ],
+      "successCriteria": ["Caption written", "Within character limits", "CTA included"],
+      "failureCriteria": ["Cannot write compliant caption"],
+      "allowedStates": ["READY_FOR_EXECUTION", "RUNNING_STEP"],
+      "blockingConditions": [],
+      "handoffRules": [
+        {
+          "condition": "caption_drafted",
+          "targetAgentId": "creative-review-agent",
+          "description": "Pass caption to Creative Review Agent",
+          "requiresApproval": false
+        }
+      ],
+      "responseFormat": "markdown"
+    },
+    {
+      "id": "creative-review-agent",
+      "name": "Creative Review Agent",
+      "role": "Creative Director",
+      "domain": "social-media",
+      "objective": "Review caption for creativity, engagement, and tone",
+      "instructions": "You are the Creative Review Agent. Review the caption draft for: creativity, engagement potential, tone consistency, and CTA effectiveness. Output PASS or REVISE with specific feedback. If REVISE, send back to Copy Agent with clear instructions.",
+      "inputs": [
+        { "name": "caption_draft", "description": "Caption to review", "required": true },
+        { "name": "strategy_brief", "description": "Original strategy for reference", "required": true }
+      ],
+      "outputs": [
+        { "name": "creative_review", "description": "Creative review verdict and feedback", "required": true, "format": "markdown" }
+      ],
+      "allowedTools": ["context"],
+      "constraints": [
+        "Do not rewrite the caption — provide feedback only",
+        "Be specific in feedback",
+        "Always output PASS or REVISE clearly"
+      ],
+      "successCriteria": ["Review completed", "Verdict issued"],
+      "failureCriteria": ["Cannot evaluate caption"],
+      "allowedStates": ["READY_FOR_EXECUTION", "RUNNING_STEP"],
+      "blockingConditions": [],
+      "handoffRules": [
+        {
+          "condition": "creative_review_passed",
+          "targetAgentId": "brand-agent",
+          "description": "Pass to Brand/Compliance Agent",
+          "requiresApproval": false
+        },
+        {
+          "condition": "creative_review_failed",
+          "targetAgentId": "copy-agent",
+          "description": "Return to Copy Agent for revision",
+          "requiresApproval": false
+        }
+      ],
+      "responseFormat": "structured",
+      "allowsLoop": true
+    },
+    {
+      "id": "brand-agent",
+      "name": "Brand/Compliance Agent",
+      "role": "Brand Guardian",
+      "domain": "social-media",
+      "objective": "Verify the caption against brand guidelines and compliance requirements",
+      "instructions": "You are the Brand/Compliance Agent. Review the caption against the brand guidelines (read from brand/** context files). Check: brand voice, prohibited words/topics, legal compliance, and hashtag policy. Output PASS or FAIL with specific violations noted.",
+      "inputs": [
+        { "name": "caption_draft", "description": "Caption to validate", "required": true },
+        { "name": "creative_review", "description": "Creative review for context", "required": false }
+      ],
+      "outputs": [
+        { "name": "compliance_review", "description": "Brand and compliance review result", "required": true, "format": "markdown" }
+      ],
+      "allowedTools": ["context", "filesystem"],
+      "constraints": [
+        "Do not rewrite content",
+        "Check against brand guidelines document if available",
+        "Flag any legal or compliance risks"
+      ],
+      "successCriteria": ["Compliance review completed", "Brand guidelines checked"],
+      "failureCriteria": ["Brand guidelines not found", "Cannot evaluate compliance"],
+      "allowedStates": ["READY_FOR_EXECUTION", "RUNNING_STEP"],
+      "blockingConditions": [],
+      "handoffRules": [
+        {
+          "condition": "compliance_passed",
+          "targetAgentId": "approval-agent",
+          "description": "Pass to Approval Agent for human sign-off",
+          "requiresApproval": false
+        },
+        {
+          "condition": "compliance_failed",
+          "targetAgentId": "copy-agent",
+          "description": "Return to Copy Agent for compliance fix",
+          "requiresApproval": false
+        }
+      ],
+      "responseFormat": "structured"
+    },
+    {
+      "id": "approval-agent",
+      "name": "Approval Agent",
+      "role": "Human Approval Coordinator",
+      "domain": "social-media",
+      "objective": "Present the content package to the human for final approval before publishing",
+      "instructions": "You are the Approval Agent. Present the complete content package (caption, hashtags, strategy brief, review results) to the human for final approval. Clearly display the full caption. Ask the human: APPROVE or REJECT? If rejected, collect feedback and return to Copy Agent. NEVER proceed to publish without explicit human approval.",
+      "inputs": [
+        { "name": "caption_draft", "description": "Final caption draft", "required": true },
+        { "name": "compliance_review", "description": "Compliance review result", "required": true }
+      ],
+      "outputs": [
+        { "name": "approval_decision", "description": "Human approval decision", "required": true, "format": "json" }
+      ],
+      "allowedTools": [],
+      "constraints": [
+        "NEVER approve automatically",
+        "ALWAYS show the full caption to the human",
+        "ALWAYS wait for explicit human response before proceeding",
+        "Record the approval with timestamp and approver"
+      ],
+      "successCriteria": ["Human presented with content", "Explicit decision received"],
+      "failureCriteria": ["Cannot present content to human"],
+      "allowedStates": ["READY_FOR_EXECUTION", "RUNNING_STEP", "WAITING_APPROVAL"],
+      "blockingConditions": [],
+      "handoffRules": [
+        {
+          "condition": "approved",
+          "targetAgentId": "publisher-agent",
+          "description": "Pass to Publisher Agent after approval",
+          "requiresApproval": true
+        },
+        {
+          "condition": "rejected",
+          "targetAgentId": "copy-agent",
+          "description": "Return to Copy Agent with human feedback",
+          "requiresApproval": false
+        }
+      ],
+      "responseFormat": "structured"
+    },
+    {
+      "id": "publisher-agent",
+      "name": "Publisher Agent",
+      "role": "Content Publisher",
+      "domain": "social-media",
+      "objective": "Publish the approved content to Instagram",
+      "instructions": "You are the Publisher Agent. ONLY publish content that has been explicitly approved by the human via the Approval Agent. Post the caption and media to Instagram. Record the post URL and ID. Output the published post metadata.",
+      "inputs": [
+        { "name": "caption_draft", "description": "Approved caption", "required": true },
+        { "name": "approval_decision", "description": "Human approval record", "required": true }
+      ],
+      "outputs": [
+        { "name": "published_post", "description": "Published post metadata and URL", "required": true, "format": "json" }
+      ],
+      "allowedTools": ["social-media"],
+      "constraints": [
+        "NEVER publish without human approval record",
+        "NEVER publish if approval_decision is missing or shows rejection",
+        "Always record the post URL",
+        "Report publish errors clearly"
+      ],
+      "successCriteria": ["Post published", "Post URL recorded"],
+      "failureCriteria": ["Publishing failed", "No approval record found"],
+      "allowedStates": ["READY_FOR_EXECUTION", "RUNNING_STEP", "WAITING_APPROVAL"],
+      "blockingConditions": ["no_approval"],
+      "handoffRules": [
+        {
+          "condition": "post_published",
+          "targetAgentId": "analytics-agent",
+          "description": "Pass to Analytics Agent for tracking",
+          "requiresApproval": false
+        }
+      ],
+      "responseFormat": "structured"
+    },
+    {
+      "id": "analytics-agent",
+      "name": "Analytics Agent",
+      "role": "Performance Analyst",
+      "domain": "social-media",
+      "objective": "Track post performance and generate an analytics report",
+      "instructions": "You are the Analytics Agent. Given a published post URL and ID, retrieve available analytics data (reach, impressions, engagement, likes, comments). Generate a performance report. Identify top-performing elements and provide recommendations for future posts.",
+      "inputs": [
+        { "name": "published_post", "description": "Published post metadata", "required": true }
+      ],
+      "outputs": [
+        { "name": "analytics_report", "description": "Post performance report with recommendations", "required": true, "format": "markdown" }
+      ],
+      "allowedTools": ["social-media", "context"],
+      "constraints": [
+        "Do not fabricate metrics",
+        "Report 'not yet available' if analytics are not ready",
+        "Always include recommendations"
+      ],
+      "successCriteria": ["Analytics report generated", "Recommendations included"],
+      "failureCriteria": ["Cannot access analytics API"],
+      "allowedStates": ["READY_FOR_EXECUTION", "RUNNING_STEP"],
+      "blockingConditions": [],
+      "handoffRules": [],
+      "responseFormat": "markdown"
+    }
+  ],
+  "workflow": {
+    "id": "workflow-instagram-content",
+    "name": "Instagram Content Pipeline",
+    "description": "End-to-end content workflow: strategy → research → copy → review → compliance → approval → publish → analytics",
+    "entryStepId": "step-strategy",
+    "steps": [
+      {
+        "id": "step-strategy",
+        "name": "Content Strategy",
+        "agentId": "strategy-agent",
+        "description": "Define content strategy and brief",
+        "dependsOn": [],
+        "guardrails": ["grail-min-context"],
+        "requiresApprovalBefore": false,
+        "requiresApprovalAfter": false,
+        "requiredArtifacts": [],
+        "producedArtifacts": ["strategy_brief"],
+        "nextStepId": "step-research"
+      },
+      {
+        "id": "step-research",
+        "name": "Research",
+        "agentId": "research-agent",
+        "description": "Research trends, hashtags, and audience insights",
+        "dependsOn": ["step-strategy"],
+        "guardrails": [],
+        "requiresApprovalBefore": false,
+        "requiresApprovalAfter": false,
+        "requiredArtifacts": ["strategy_brief"],
+        "producedArtifacts": ["research_summary"],
+        "nextStepId": "step-copy"
+      },
+      {
+        "id": "step-copy",
+        "name": "Copywriting",
+        "agentId": "copy-agent",
+        "description": "Write Instagram caption",
+        "dependsOn": ["step-research"],
+        "guardrails": [],
+        "requiresApprovalBefore": false,
+        "requiresApprovalAfter": false,
+        "requiredArtifacts": ["strategy_brief", "research_summary"],
+        "producedArtifacts": ["caption_draft"],
+        "allowsLoop": true,
+        "nextStepId": "step-creative-review"
+      },
+      {
+        "id": "step-creative-review",
+        "name": "Creative Review",
+        "agentId": "creative-review-agent",
+        "description": "Review for creativity and engagement",
+        "dependsOn": ["step-copy"],
+        "guardrails": [],
+        "requiresApprovalBefore": false,
+        "requiresApprovalAfter": false,
+        "requiredArtifacts": ["caption_draft"],
+        "producedArtifacts": ["creative_review"],
+        "allowsLoop": true,
+        "nextStepId": "step-brand"
+      },
+      {
+        "id": "step-brand",
+        "name": "Brand & Compliance Review",
+        "agentId": "brand-agent",
+        "description": "Check brand guidelines and compliance",
+        "dependsOn": ["step-creative-review"],
+        "guardrails": [],
+        "requiresApprovalBefore": false,
+        "requiresApprovalAfter": false,
+        "requiredArtifacts": ["caption_draft"],
+        "producedArtifacts": ["compliance_review"],
+        "nextStepId": "step-approval"
+      },
+      {
+        "id": "step-approval",
+        "name": "Human Approval",
+        "agentId": "approval-agent",
+        "description": "Present to human for final approval",
+        "dependsOn": ["step-brand"],
+        "guardrails": ["grail-approval-publish"],
+        "requiresApprovalBefore": true,
+        "requiresApprovalAfter": false,
+        "requiredArtifacts": ["caption_draft", "compliance_review"],
+        "producedArtifacts": ["approval_decision"],
+        "nextStepId": "step-publish"
+      },
+      {
+        "id": "step-publish",
+        "name": "Publishing",
+        "agentId": "publisher-agent",
+        "description": "Publish approved content to Instagram",
+        "dependsOn": ["step-approval"],
+        "guardrails": ["grail-approval-publish"],
+        "requiresApprovalBefore": true,
+        "requiresApprovalAfter": false,
+        "requiredArtifacts": ["caption_draft", "approval_decision"],
+        "producedArtifacts": ["published_post"],
+        "nextStepId": "step-analytics"
+      },
+      {
+        "id": "step-analytics",
+        "name": "Analytics",
+        "agentId": "analytics-agent",
+        "description": "Track and report post performance",
+        "dependsOn": ["step-publish"],
+        "guardrails": [],
+        "requiresApprovalBefore": false,
+        "requiresApprovalAfter": false,
+        "requiredArtifacts": ["published_post"],
+        "producedArtifacts": ["analytics_report"]
+      }
+    ]
+  },
+  "policy": {
+    "id": "policy-instagram-content",
+    "name": "Instagram Content Policies",
+    "description": "Policies for safe, brand-compliant Instagram content creation and publishing",
+    "guardrails": [
+      {
+        "id": "grail-min-context",
+        "name": "Require Minimum Context",
+        "description": "Brand guidelines should be available",
+        "severity": "warn",
+        "ruleKey": "require_minimum_context",
+        "params": { "requiredFields": ["projectMd"] }
+      },
+      {
+        "id": "grail-approval-publish",
+        "name": "Require Approval Before Publish",
+        "description": "All publishing requires human approval",
+        "severity": "block",
+        "ruleKey": "require_approval_before_publish"
+      }
+    ],
+    "prohibitedActions": [
+      "Auto-publish without human approval",
+      "Post content that fails brand compliance check",
+      "Use more than 30 hashtags",
+      "Publish content rejected by the Creative Review Agent",
+      "Delete published posts automatically"
+    ],
+    "requiredApprovals": [
+      {
+        "action": "publish",
+        "description": "A human must explicitly approve the caption before publishing to Instagram"
+      }
+    ]
+  },
+  "expectedArtifacts": [
+    { "id": "artifact-strategy", "name": "Strategy Brief", "description": "Content strategy", "path": "outputs/strategy_brief.md", "required": true, "format": "markdown" },
+    { "id": "artifact-caption", "name": "Caption Draft", "description": "Instagram caption", "path": "outputs/caption_draft.md", "required": true, "format": "markdown" },
+    { "id": "artifact-review", "name": "Creative Review", "description": "Creative director review", "path": "outputs/creative_review.md", "required": true, "format": "markdown" },
+    { "id": "artifact-compliance", "name": "Compliance Review", "description": "Brand/compliance review", "path": "outputs/compliance_review.md", "required": true, "format": "markdown" },
+    { "id": "artifact-approval", "name": "Approval Decision", "description": "Human approval record", "path": "outputs/approval_decision.json", "required": true, "format": "json" },
+    { "id": "artifact-post", "name": "Published Post", "description": "Published post metadata", "path": "outputs/published_post.json", "required": true, "format": "json" },
+    { "id": "artifact-analytics", "name": "Analytics Report", "description": "Post performance report", "path": "outputs/analytics_report.md", "required": false, "format": "markdown" }
+  ],
+  "allowedIntegrations": [
+    { "id": "instagram", "type": "social-media", "name": "Instagram Graph API", "required": true, "status": "stub" }
+  ],
+  "templates": ["brand-brief-template", "caption-template"],
+  "successCriteria": [
+    "Content created and passes brand review",
+    "Human explicitly approves content",
+    "Post published successfully",
+    "Analytics report generated"
+  ],
+  "failureCriteria": [
+    "Content fails brand compliance after 3 revision cycles",
+    "Human rejects content",
+    "Publishing fails"
+  ],
+  "metadata": {
+    "version": "1.0.0",
+    "createdAt": "2026-04-01T00:00:00.000Z",
+    "updatedAt": "2026-04-01T00:00:00.000Z",
+    "tags": ["social-media", "instagram", "content", "brand", "publishing"],
+    "hostCompatibility": ["claude-code", "opencode", "cursor", "codex", "zed", "any"]
+  }
+}

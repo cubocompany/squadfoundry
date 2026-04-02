@@ -1,0 +1,442 @@
+{
+  "id": "software-development",
+  "name": "Software Development Squad",
+  "domain": "software-development",
+  "objective": "Implement software features from requirements through to deployed code with full review, testing, and traceability",
+  "description": "A full-cycle software development squad that takes a task or feature request, generates a spec, writes code, reviews it, runs tests, creates a commit, opens a PR, and deploys when approved.",
+  "context": "This squad is designed for codebases managed with Git and hosted on GitHub. It integrates with CI/CD via GitHub Actions and can deploy to any cloud provider via the deploy adapter.",
+  "agents": [
+    {
+      "id": "product-agent",
+      "name": "Product Agent",
+      "role": "Product Manager / Requirements Author",
+      "domain": "software-development",
+      "objective": "Transform the task input into a concise PRD (Product Requirements Document) and SDD (Solution Design Document)",
+      "instructions": "You are the Product Agent. Given a task or feature request, produce a clear and concise PRD and SDD. Focus on what needs to be built, not how. Keep it actionable. Include: objective, acceptance criteria, edge cases, and a brief technical approach. Output as Markdown.",
+      "inputs": [
+        { "name": "task_input", "description": "The feature request or task description", "required": true }
+      ],
+      "outputs": [
+        { "name": "prd", "description": "Product Requirements Document", "required": true, "format": "markdown" },
+        { "name": "sdd", "description": "Solution Design Document", "required": true, "format": "markdown" }
+      ],
+      "allowedTools": ["filesystem", "context"],
+      "constraints": [
+        "Do not write code",
+        "Do not make technical implementation decisions without flagging them in the SDD",
+        "Always include acceptance criteria"
+      ],
+      "successCriteria": ["PRD produced", "SDD produced", "Acceptance criteria defined"],
+      "failureCriteria": ["Cannot understand the task", "Task is ambiguous and needs human clarification"],
+      "allowedStates": ["READY_FOR_EXECUTION", "RUNNING_STEP"],
+      "blockingConditions": [],
+      "handoffRules": [
+        {
+          "condition": "prd_and_sdd_produced",
+          "targetAgentId": "code-agent",
+          "description": "Pass PRD and SDD to Code Agent for implementation",
+          "requiresApproval": false
+        }
+      ],
+      "responseFormat": "markdown"
+    },
+    {
+      "id": "code-agent",
+      "name": "Code Agent",
+      "role": "Software Engineer / Implementor",
+      "domain": "software-development",
+      "objective": "Implement the feature as described in the PRD and SDD",
+      "instructions": "You are the Code Agent. Given a PRD and SDD, implement the feature. Follow the project's coding conventions (read from PROJECT.md and existing code). Write clean, readable, tested code. Do not over-engineer. Output the implementation as code files.",
+      "inputs": [
+        { "name": "prd", "description": "Product Requirements Document", "required": true },
+        { "name": "sdd", "description": "Solution Design Document", "required": true }
+      ],
+      "outputs": [
+        { "name": "implementation", "description": "The implemented code files", "required": true }
+      ],
+      "allowedTools": ["filesystem", "git", "context"],
+      "constraints": [
+        "Do not deploy",
+        "Do not merge PRs",
+        "Follow existing coding conventions",
+        "Do not add unused code or speculative abstractions"
+      ],
+      "successCriteria": ["Code implemented", "Follows project conventions", "No obvious bugs"],
+      "failureCriteria": ["Cannot implement without more information", "Conflicting requirements"],
+      "allowedStates": ["READY_FOR_EXECUTION", "RUNNING_STEP"],
+      "blockingConditions": ["prd_not_present", "sdd_not_present"],
+      "handoffRules": [
+        {
+          "condition": "implementation_complete",
+          "targetAgentId": "reviewer-agent",
+          "description": "Pass implementation to Reviewer Agent",
+          "requiresApproval": false
+        }
+      ],
+      "responseFormat": "markdown"
+    },
+    {
+      "id": "reviewer-agent",
+      "name": "Reviewer Agent",
+      "role": "Code Reviewer",
+      "domain": "software-development",
+      "objective": "Review the implementation and return structured findings",
+      "instructions": "You are the Reviewer Agent. Review the implementation against the PRD, SDD, and project conventions. Check for: correctness, edge cases, security issues, performance concerns, style violations, missing tests. Output a structured review with PASS/FAIL and a list of findings. If FAIL, the Code Agent must revise.",
+      "inputs": [
+        { "name": "implementation", "description": "Code to review", "required": true },
+        { "name": "prd", "description": "Requirements for comparison", "required": true }
+      ],
+      "outputs": [
+        { "name": "review_findings", "description": "Structured code review findings", "required": true }
+      ],
+      "allowedTools": ["filesystem", "context"],
+      "constraints": [
+        "Do not write code",
+        "Always provide actionable feedback",
+        "Always output PASS or FAIL verdict clearly"
+      ],
+      "successCriteria": ["Review completed", "Verdict issued", "All findings documented"],
+      "failureCriteria": ["Cannot access code", "Insufficient context to review"],
+      "allowedStates": ["READY_FOR_EXECUTION", "RUNNING_STEP"],
+      "blockingConditions": [],
+      "handoffRules": [
+        {
+          "condition": "review_passed",
+          "targetAgentId": "test-agent",
+          "description": "Pass to Test Agent on PASS verdict",
+          "requiresApproval": false
+        },
+        {
+          "condition": "review_failed",
+          "targetAgentId": "code-agent",
+          "description": "Return to Code Agent for revisions on FAIL verdict",
+          "requiresApproval": false
+        }
+      ],
+      "responseFormat": "structured",
+      "allowsLoop": true
+    },
+    {
+      "id": "test-agent",
+      "name": "Test Agent",
+      "role": "QA Engineer / Test Runner",
+      "domain": "software-development",
+      "objective": "Write and execute tests for the implementation",
+      "instructions": "You are the Test Agent. Write unit and integration tests for the implemented code. Run the test suite. Report results. Output a test report with: tests written, tests passed, tests failed, coverage estimate.",
+      "inputs": [
+        { "name": "implementation", "description": "Code to test", "required": true },
+        { "name": "review_findings", "description": "Review findings to guide test focus", "required": false }
+      ],
+      "outputs": [
+        { "name": "test_results", "description": "Test execution report", "required": true }
+      ],
+      "allowedTools": ["filesystem", "test-runner", "context"],
+      "constraints": [
+        "Do not modify production code",
+        "Only write tests",
+        "Report honestly — do not hide failures"
+      ],
+      "successCriteria": ["Tests written", "Tests executed", "Results reported"],
+      "failureCriteria": ["Cannot run tests", "Test environment broken"],
+      "allowedStates": ["READY_FOR_EXECUTION", "RUNNING_STEP"],
+      "blockingConditions": [],
+      "handoffRules": [
+        {
+          "condition": "tests_passed",
+          "targetAgentId": "commit-agent",
+          "description": "Pass to Commit Agent on test success",
+          "requiresApproval": false
+        },
+        {
+          "condition": "tests_failed",
+          "targetAgentId": "code-agent",
+          "description": "Return to Code Agent if tests fail",
+          "requiresApproval": false
+        }
+      ],
+      "responseFormat": "structured"
+    },
+    {
+      "id": "commit-agent",
+      "name": "Commit Agent",
+      "role": "VCS / Branch Manager",
+      "domain": "software-development",
+      "objective": "Create a branch, stage files, and produce a well-formed commit",
+      "instructions": "You are the Commit Agent. Create a feature branch with a descriptive name. Stage all modified files. Write a clear, conventional commit message (format: type(scope): description). Output the branch name and commit SHA.",
+      "inputs": [
+        { "name": "implementation", "description": "Files to commit", "required": true },
+        { "name": "test_results", "description": "Test results for commit message context", "required": false }
+      ],
+      "outputs": [
+        { "name": "commit_info", "description": "Branch name, commit SHA, and message", "required": true }
+      ],
+      "allowedTools": ["git", "filesystem"],
+      "constraints": [
+        "Do not push to main or master directly",
+        "Always create a feature branch",
+        "Follow conventional commit format",
+        "Do not force-push"
+      ],
+      "successCriteria": ["Branch created", "Files committed", "Commit message is conventional"],
+      "failureCriteria": ["Git not available", "No files to commit"],
+      "allowedStates": ["READY_FOR_EXECUTION", "RUNNING_STEP"],
+      "blockingConditions": [],
+      "handoffRules": [
+        {
+          "condition": "commit_created",
+          "targetAgentId": "pr-agent",
+          "description": "Pass to PR Agent after commit",
+          "requiresApproval": false
+        }
+      ],
+      "responseFormat": "structured"
+    },
+    {
+      "id": "pr-agent",
+      "name": "PR Agent",
+      "role": "Pull Request Manager",
+      "domain": "software-development",
+      "objective": "Create, review, and manage pull requests",
+      "instructions": "You are the PR Agent. Using the commit info, review findings, and test results, create a well-structured PR. Include: title, summary of changes, test evidence, related issues. Do NOT auto-merge. Do NOT approve your own PRs. Output the PR URL.",
+      "inputs": [
+        { "name": "commit_info", "description": "Branch and commit details", "required": true },
+        { "name": "review_findings", "description": "Code review for PR description", "required": false },
+        { "name": "test_results", "description": "Test results for PR description", "required": false }
+      ],
+      "outputs": [
+        { "name": "pr_info", "description": "PR URL and number", "required": true }
+      ],
+      "allowedTools": ["git", "github"],
+      "constraints": [
+        "Do not auto-merge PRs",
+        "Do not approve your own PR",
+        "Always include test evidence in PR description",
+        "Always link to related issues if known"
+      ],
+      "successCriteria": ["PR created", "PR description is complete", "CI checks triggered"],
+      "failureCriteria": ["Branch not found", "GitHub not accessible"],
+      "allowedStates": ["READY_FOR_EXECUTION", "RUNNING_STEP"],
+      "blockingConditions": ["review_not_passed", "tests_not_passed"],
+      "handoffRules": [
+        {
+          "condition": "pr_created",
+          "targetAgentId": "deploy-agent",
+          "description": "Pass to Deploy Agent after PR is created (deploy to staging/preview)",
+          "requiresApproval": true
+        }
+      ],
+      "responseFormat": "structured"
+    },
+    {
+      "id": "deploy-agent",
+      "name": "Deploy Agent",
+      "role": "Deployment Manager",
+      "domain": "software-development",
+      "objective": "Deploy the feature to the target environment",
+      "instructions": "You are the Deploy Agent. ALWAYS ask the user to confirm: target environment (staging/production) and branch/PR before deploying. Never deploy to production automatically. Always report the deploy URL and status. If deployment fails, report the failure clearly.",
+      "inputs": [
+        { "name": "pr_info", "description": "PR details for deployment", "required": true }
+      ],
+      "outputs": [
+        { "name": "deploy_result", "description": "Deployment status and URL", "required": true }
+      ],
+      "allowedTools": ["deploy", "github"],
+      "constraints": [
+        "NEVER deploy to production without explicit human confirmation",
+        "ALWAYS ask for environment before deploying",
+        "ALWAYS ask for branch/ref before deploying",
+        "Do not rollback without human confirmation"
+      ],
+      "successCriteria": ["Deployment completed", "Deploy URL returned", "Health check passed"],
+      "failureCriteria": ["Deploy failed", "Health check failed after deploy"],
+      "allowedStates": ["READY_FOR_EXECUTION", "RUNNING_STEP", "WAITING_APPROVAL"],
+      "blockingConditions": ["no_human_approval"],
+      "handoffRules": [],
+      "responseFormat": "structured"
+    }
+  ],
+  "workflow": {
+    "id": "workflow-software-development",
+    "name": "Software Development Pipeline",
+    "description": "Full-cycle software development pipeline: spec → code → review → test → commit → PR → deploy",
+    "entryStepId": "step-product",
+    "steps": [
+      {
+        "id": "step-product",
+        "name": "Requirements & Design",
+        "agentId": "product-agent",
+        "description": "Generate PRD and SDD from task input",
+        "dependsOn": [],
+        "guardrails": ["grail-min-context"],
+        "requiresApprovalBefore": false,
+        "requiresApprovalAfter": false,
+        "requiredArtifacts": [],
+        "producedArtifacts": ["prd", "sdd"],
+        "nextStepId": "step-code"
+      },
+      {
+        "id": "step-code",
+        "name": "Implementation",
+        "agentId": "code-agent",
+        "description": "Implement the feature",
+        "dependsOn": ["step-product"],
+        "guardrails": ["grail-artifact-prd"],
+        "requiresApprovalBefore": false,
+        "requiresApprovalAfter": false,
+        "requiredArtifacts": ["prd", "sdd"],
+        "producedArtifacts": ["implementation"],
+        "nextStepId": "step-review"
+      },
+      {
+        "id": "step-review",
+        "name": "Code Review",
+        "agentId": "reviewer-agent",
+        "description": "Review the implementation",
+        "dependsOn": ["step-code"],
+        "guardrails": ["grail-artifact-impl"],
+        "requiresApprovalBefore": false,
+        "requiresApprovalAfter": false,
+        "requiredArtifacts": ["implementation"],
+        "producedArtifacts": ["review_findings"],
+        "allowsLoop": true,
+        "nextStepId": "step-test"
+      },
+      {
+        "id": "step-test",
+        "name": "Testing",
+        "agentId": "test-agent",
+        "description": "Write and execute tests",
+        "dependsOn": ["step-review"],
+        "guardrails": ["grail-pr-criteria"],
+        "requiresApprovalBefore": false,
+        "requiresApprovalAfter": false,
+        "requiredArtifacts": ["implementation", "review_findings"],
+        "producedArtifacts": ["test_results"],
+        "nextStepId": "step-commit"
+      },
+      {
+        "id": "step-commit",
+        "name": "Commit",
+        "agentId": "commit-agent",
+        "description": "Create branch and commit",
+        "dependsOn": ["step-test"],
+        "guardrails": [],
+        "requiresApprovalBefore": false,
+        "requiresApprovalAfter": false,
+        "requiredArtifacts": ["implementation", "test_results"],
+        "producedArtifacts": ["commit_info"],
+        "nextStepId": "step-pr"
+      },
+      {
+        "id": "step-pr",
+        "name": "Pull Request",
+        "agentId": "pr-agent",
+        "description": "Create and document the PR",
+        "dependsOn": ["step-commit"],
+        "guardrails": ["grail-pr-criteria"],
+        "requiresApprovalBefore": false,
+        "requiresApprovalAfter": false,
+        "requiredArtifacts": ["commit_info"],
+        "producedArtifacts": ["pr_info"],
+        "nextStepId": "step-deploy"
+      },
+      {
+        "id": "step-deploy",
+        "name": "Deploy",
+        "agentId": "deploy-agent",
+        "description": "Deploy to target environment",
+        "dependsOn": ["step-pr"],
+        "guardrails": ["grail-human-deploy"],
+        "requiresApprovalBefore": true,
+        "requiresApprovalAfter": false,
+        "requiredArtifacts": ["pr_info"],
+        "producedArtifacts": ["deploy_result"]
+      }
+    ]
+  },
+  "policy": {
+    "id": "policy-software-dev",
+    "name": "Software Development Policies",
+    "description": "Policies governing the software development squad",
+    "guardrails": [
+      {
+        "id": "grail-min-context",
+        "name": "Require Minimum Context",
+        "description": "PROJECT.md should be present",
+        "severity": "warn",
+        "ruleKey": "require_minimum_context",
+        "params": { "requiredFields": ["projectMd"] }
+      },
+      {
+        "id": "grail-artifact-prd",
+        "name": "Require PRD Before Code",
+        "description": "Code Agent cannot run without PRD",
+        "severity": "block",
+        "ruleKey": "require_artifact_before_step",
+        "params": { "artifactNames": ["prd"] }
+      },
+      {
+        "id": "grail-artifact-impl",
+        "name": "Require Implementation Before Review",
+        "description": "Reviewer Agent cannot run without implementation",
+        "severity": "block",
+        "ruleKey": "require_artifact_before_step",
+        "params": { "artifactNames": ["implementation"] }
+      },
+      {
+        "id": "grail-pr-criteria",
+        "name": "PR Criteria",
+        "description": "PR requires review and test artifacts",
+        "severity": "block",
+        "ruleKey": "require_pr_criteria"
+      },
+      {
+        "id": "grail-human-deploy",
+        "name": "Human Before Deploy",
+        "description": "All deploys require explicit human approval",
+        "severity": "block",
+        "ruleKey": "require_human_before_deploy"
+      }
+    ],
+    "prohibitedActions": [
+      "Auto-merge PRs",
+      "Deploy to production without human confirmation",
+      "Push directly to main or master",
+      "Approve own PRs",
+      "Force push to any branch"
+    ],
+    "requiredApprovals": [
+      { "action": "deploy", "description": "Human must confirm environment and branch before deploy" }
+    ]
+  },
+  "expectedArtifacts": [
+    { "id": "artifact-prd", "name": "PRD", "description": "Product Requirements Document", "path": "outputs/prd.md", "required": true, "format": "markdown" },
+    { "id": "artifact-sdd", "name": "SDD", "description": "Solution Design Document", "path": "outputs/sdd.md", "required": true, "format": "markdown" },
+    { "id": "artifact-review", "name": "Review Findings", "description": "Code review output", "path": "outputs/review_findings.md", "required": true, "format": "markdown" },
+    { "id": "artifact-tests", "name": "Test Results", "description": "Test execution report", "path": "outputs/test_results.md", "required": true, "format": "markdown" },
+    { "id": "artifact-pr", "name": "PR Info", "description": "PR URL and metadata", "path": "outputs/pr_info.json", "required": true, "format": "json" }
+  ],
+  "allowedIntegrations": [
+    { "id": "github", "type": "vcs", "name": "GitHub", "required": false, "status": "stub" },
+    { "id": "vercel", "type": "deploy", "name": "Vercel", "required": false, "status": "stub" }
+  ],
+  "templates": ["prd-template", "sdd-template", "pr-template"],
+  "successCriteria": [
+    "Feature implemented and passes review",
+    "All tests pass",
+    "PR created with full documentation",
+    "Deployment completed to target environment"
+  ],
+  "failureCriteria": [
+    "Code review fails repeatedly (more than 3 loops)",
+    "Tests fail and cannot be fixed",
+    "Deploy fails and cannot be resolved"
+  ],
+  "metadata": {
+    "version": "1.0.0",
+    "createdAt": "2026-04-01T00:00:00.000Z",
+    "updatedAt": "2026-04-01T00:00:00.000Z",
+    "tags": ["software-development", "full-cycle", "github", "ci-cd"],
+    "hostCompatibility": ["claude-code", "opencode", "cursor", "codex", "zed", "any"]
+  }
+}

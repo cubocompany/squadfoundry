@@ -1,0 +1,103 @@
+{
+  "name": "squadfoundry",
+  "version": "0.1.0",
+  "description": "Local extensible multi-agent squad orchestration platform — model-agnostic, host-agnostic, domain-agnostic",
+  "type": "module",
+  "main": "./dist/orchestrator/index.js",
+  "types": "./dist/orchestrator/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/orchestrator/index.js",
+      "types": "./dist/orchestrator/index.d.ts"
+    },
+    "./adapters/host/ide": {
+      "import": "./dist/orchestrator/adapters/host/ide.adapter.js",
+      "types": "./dist/orchestrator/adapters/host/ide.adapter.d.ts"
+    },
+    "./adapters/host/claude-code": {
+      "import": "./dist/orchestrator/adapters/host/claude-code.adapter.js",
+      "types": "./dist/orchestrator/adapters/host/claude-code.adapter.d.ts"
+    },
+    "./adapters/host/opencode": {
+      "import": "./dist/orchestrator/adapters/host/opencode.adapter.js",
+      "types": "./dist/orchestrator/adapters/host/opencode.adapter.d.ts"
+    },
+    "./adapters/host/anthropic": {
+      "import": "./dist/orchestrator/adapters/host/anthropic.adapter.js",
+      "types": "./dist/orchestrator/adapters/host/anthropic.adapter.d.ts"
+    },
+    "./adapters/host/openai": {
+      "import": "./dist/orchestrator/adapters/host/openai.adapter.js",
+      "types": "./dist/orchestrator/adapters/host/openai.adapter.d.ts"
+    },
+    "./adapters/host/local": {
+      "import": "./dist/orchestrator/adapters/host/local.adapter.js",
+      "types": "./dist/orchestrator/adapters/host/local.adapter.d.ts"
+    }
+  },
+  "bin": {
+    "squadfoundry": "./dist/orchestrator/cli/index.js"
+  },
+  "files": [
+    "dist/",
+    "squads/",
+    "templates/",
+    "docs/",
+    "README.md",
+    "PROJECT.md",
+    "AGENTS.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "cli": "node dist/orchestrator/cli/index.js",
+    "dev:cli": "tsx orchestrator/cli/index.ts",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.82.0",
+    "commander": "^12.1.0",
+    "glob": "^11.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^2.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "agents",
+    "multi-agent",
+    "orchestration",
+    "squad",
+    "ai",
+    "automation",
+    "workflow",
+    "claude-code",
+    "opencode",
+    "cursor",
+    "codex",
+    "ai-native"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cubocompany/squadfoundry"
+  },
+  "homepage": "https://github.com/cubocompany/squadfoundry",
+  "bugs": {
+    "url": "https://github.com/cubocompany/squadfoundry/issues"
+  },
+  "license": "MIT"
+}
