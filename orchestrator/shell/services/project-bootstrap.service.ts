@@ -1,23 +1,31 @@
 import { access, mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
-const PROJECT_CONFIG_FILE = 'squadfoundry.config.json'
-const HOST_PREFERENCES_FILE = 'squadfoundry.hosts.json'
-
-type ProjectConfig = {
-  version: number
-  cliMode: 'shell'
-}
+import {
+  SQUADFOUNDRY_CONFIG_FILE,
+  SQUADFOUNDRY_HOSTS_FILE,
+  type InstallScope,
+  type PreferredIde,
+  type SquadFoundryConfig,
+  getGlobalConfigDir,
+  getRepositoryConfigDir,
+} from './config-paths.service.js'
 
 type HostPreferences = {
   preferredHost: string | null
+  validation?: {
+    timestamp: string
+    matchedSignals: string[]
+  } | null
   lastValidated: string | null
   hosts: string[]
 }
 
-const defaultProjectConfig: ProjectConfig = {
+const defaultProjectConfig: SquadFoundryConfig = {
   version: 1,
   cliMode: 'shell',
+  installScope: 'repository',
+  preferredIde: 'none',
 }
 
 const defaultHostPreferences: HostPreferences = {
@@ -88,16 +96,10 @@ async function writeJsonFile(filePath: string, content: unknown): Promise<void> 
 }
 
 async function scaffoldIdeCommands(workspaceDir: string): Promise<void> {
-  const targetDirs = [
-    join(workspaceDir, '.opencode', 'commands'),
-    join(workspaceDir, '.claude', 'commands'),
-  ]
-
-  for (const dir of targetDirs) {
-    await mkdir(dir, { recursive: true })
-    for (const [fileName, content] of Object.entries(IDE_COMMANDS)) {
-      await writeFile(join(dir, fileName), `${content}\n`, 'utf-8')
-    }
+  const dir = join(workspaceDir, 'commands')
+  await mkdir(dir, { recursive: true })
+  for (const [fileName, content] of Object.entries(IDE_COMMANDS)) {
+    await writeFile(join(dir, fileName), `${content}\n`, 'utf-8')
   }
 }
 
@@ -112,13 +114,19 @@ async function fileExists(filePath: string): Promise<boolean> {
 
 type InitProjectOptions = {
   force?: boolean
+  installScope?: InstallScope
+  preferredIde?: PreferredIde
 }
 
 export async function initProject(workspaceDir: string, options: InitProjectOptions = {}): Promise<void> {
-  await mkdir(workspaceDir, { recursive: true })
+  const installScope = options.installScope ?? 'repository'
+  const preferredIde = options.preferredIde ?? 'none'
+  const configRoot = installScope === 'global' ? getGlobalConfigDir() : getRepositoryConfigDir(workspaceDir)
 
-  const configPath = join(workspaceDir, PROJECT_CONFIG_FILE)
-  const hostsPath = join(workspaceDir, HOST_PREFERENCES_FILE)
+  await mkdir(configRoot, { recursive: true })
+
+  const configPath = join(configRoot, SQUADFOUNDRY_CONFIG_FILE)
+  const hostsPath = join(configRoot, SQUADFOUNDRY_HOSTS_FILE)
   const force = options.force ?? false
 
   if (!force) {
@@ -129,9 +137,11 @@ export async function initProject(workspaceDir: string, options: InitProjectOpti
   }
 
   await Promise.all([
-    writeJsonFile(configPath, defaultProjectConfig),
+    writeJsonFile(configPath, { ...defaultProjectConfig, installScope, preferredIde }),
     writeJsonFile(hostsPath, defaultHostPreferences),
   ])
 
-  await scaffoldIdeCommands(workspaceDir)
+  if (preferredIde !== 'none') {
+    await scaffoldIdeCommands(join(configRoot, preferredIde))
+  }
 }

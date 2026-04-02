@@ -12,7 +12,7 @@ type RunOptions = {
   artifacts: string
 }
 
-function isSquadDefinition(value: unknown): value is SquadDefinition {
+export function isSquadDefinition(value: unknown): value is SquadDefinition {
   if (!value || typeof value !== 'object') return false
   const obj = value as Record<string, unknown>
 
@@ -35,10 +35,11 @@ function isSquadDefinition(value: unknown): value is SquadDefinition {
   const hasValidSteps = workflow['steps'].every((step) => {
     if (!step || typeof step !== 'object') return false
     const s = step as Record<string, unknown>
+    const hasValidType = s['type'] === undefined || typeof s['type'] === 'string'
     return typeof s['id'] === 'string'
       && typeof s['agentId'] === 'string'
       && typeof s['name'] === 'string'
-      && typeof s['type'] === 'string'
+      && hasValidType
   })
 
   return hasValidSteps

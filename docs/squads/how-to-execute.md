@@ -101,6 +101,8 @@ Runtime metadata report:
 For CLI shell mode, host resolution is automatic by detection + persisted preference.
 If no valid host is detected, CLI asks for host selection.
 
+Persisted host settings are stored in `.squadfoundry/hosts.json` (repository scope) or in the user config directory when initialized globally.
+
 For explicit adapter selection in non-interactive environments:
 
 ```bash

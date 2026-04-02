@@ -35,8 +35,8 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod'
-import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 
 import { createSquadBuilder } from '../builder/squad-builder.js'
 import { createSquadRuntime } from '../runtime/squad-runtime.js'
@@ -52,6 +52,7 @@ import type { IHostAdapter } from '../adapters/host/IHostAdapter.js'
 import type { SquadDefinition, InterviewAnswer } from '../core/types.js'
 import { ActiveHostDetector } from '../shell/services/active-host-detector.service.js'
 import { HostResolutionService, type PersistedHostPreference } from '../shell/services/host-resolution.service.js'
+import { SQUADFOUNDRY_HOSTS_FILE, resolveConfigDir } from '../shell/services/config-paths.service.js'
 
 const CWD = process.cwd()
 const ARTIFACTS_DIR = join(CWD, 'artifacts')
@@ -59,7 +60,7 @@ const SQUADS_DIR = join(CWD, 'squads')
 
 // ─── Adapter selection ────────────────────────────────────────────────────────
 
-const HOST_PREFS_PATH = join(CWD, 'squadfoundry.hosts.json')
+const HOST_PREFS_PATH = join(resolveConfigDir(CWD).configDir, SQUADFOUNDRY_HOSTS_FILE)
 
 function createAdapter(hostId: string): IHostAdapter | null {
   if (hostId === 'claude-code') {
@@ -98,6 +99,7 @@ function loadPersistedPreference(): PersistedHostPreference | null {
 }
 
 function persistPreferredHost(preference: PersistedHostPreference): void {
+  mkdirSync(dirname(HOST_PREFS_PATH), { recursive: true })
   const existing = loadPersistedPreference()
   const raw = existsSync(HOST_PREFS_PATH)
     ? JSON.parse(readFileSync(HOST_PREFS_PATH, 'utf-8')) as { hosts?: string[] }
