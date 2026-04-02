@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/cubocompany/squadfoundry/compare/v1.0.2...v1.0.3) (2026-04-02)
+
+
+### Bug Fixes
+
+* **release:** update files to deploy ([07539ec](https://github.com/cubocompany/squadfoundry/commit/07539ec83bd90b0a7cf936ac6a180c08ffb5308f))
+
 ## [1.0.2](https://github.com/cubocompany/squadfoundry/compare/v1.0.1...v1.0.2) (2026-04-02)
 
 
