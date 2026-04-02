@@ -36,6 +36,17 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Verify npm token and identity
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "$NPM_TOKEN" ]; then
+            echo "NPM_TOKEN is empty in this job"
+            exit 1
+          fi
+          printf "//registry.npmjs.org/:_authToken=%s\n" "$NPM_TOKEN" > ~/.npmrc
+          npm whoami --registry=https://registry.npmjs.org/
+
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
