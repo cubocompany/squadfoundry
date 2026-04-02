@@ -32,10 +32,14 @@ describe('project bootstrap service', () => {
       expect(hostsContent).toEqual({ preferredHost: null, lastValidated: null, hosts: [] })
 
       const claudeRunPath = join(workspaceDir, '.squadfoundry', 'claude-code', 'commands', 'squad-run.md')
+      const claudeNativeRunPath = join(workspaceDir, '.claude', 'commands', 'squad-run.md')
       expect(existsSync(claudeRunPath)).toBe(true)
+      expect(existsSync(claudeNativeRunPath)).toBe(true)
 
       const claudeRun = await readFile(claudeRunPath, 'utf-8')
+      const claudeNativeRun = await readFile(claudeNativeRunPath, 'utf-8')
       expect(claudeRun).toContain('squadfoundry run')
+      expect(claudeNativeRun).toContain('squadfoundry run')
     } finally {
       await rm(workspaceDir, { recursive: true, force: true })
     }
@@ -80,13 +84,15 @@ describe('project bootstrap service', () => {
     const globalDir = getGlobalConfigDir()
     const configPath = join(globalDir, 'config.json')
     const hostsPath = join(globalDir, 'hosts.json')
+    const opencodeNativeRunPath = join(workspaceDir, '.opencode', 'commands', 'squad-run.md')
 
     try {
       await rm(globalDir, { recursive: true, force: true })
-      await initProject(workspaceDir, { installScope: 'global', preferredIde: 'none' })
+      await initProject(workspaceDir, { installScope: 'global', preferredIde: 'opencode' })
 
       expect(existsSync(configPath)).toBe(true)
       expect(existsSync(hostsPath)).toBe(true)
+      expect(existsSync(opencodeNativeRunPath)).toBe(true)
 
       const configContent = JSON.parse(await readFile(configPath, 'utf-8'))
       expect(configContent.installScope).toBe('global')
