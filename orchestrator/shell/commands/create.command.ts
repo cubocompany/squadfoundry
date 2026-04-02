@@ -22,6 +22,10 @@ export function registerCreate(program: Command): void {
       const hostRuntime = new HostRuntimeService(opts.cwd)
       const resolved = await hostRuntime.resolveForCommand('create')
 
+      if (!process.stdin.isTTY) {
+        throw new Error("The 'create' command requires an interactive terminal.")
+      }
+
       const builder = createSquadBuilder({
         contextRootPath: opts.cwd,
         outputDir: opts.out,
