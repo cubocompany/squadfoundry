@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/cubocompany/squadfoundry/compare/v1.1.0...v1.1.1) (2026-04-02)
+
+
+### Bug Fixes
+
+* **init:** scaffold native Claude/OpenCode command dirs ([a24ae5e](https://github.com/cubocompany/squadfoundry/commit/a24ae5e31084ebd87d76354c32de1a72736c091d))
+
 # [1.1.0](https://github.com/cubocompany/squadfoundry/compare/v1.0.5...v1.1.0) (2026-04-02)
 
 
